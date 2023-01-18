@@ -1,0 +1,4 @@
+project: roaring
+target: roaring-serialization-fuzz
+cmds:
+  - cmd: ./serialization-fuzz.libfuzzer
