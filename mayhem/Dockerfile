@@ -1,14 +1,14 @@
-FROM fuzzers/go-fuzz:1.2.0 as builder
+FROM golang:1.21 AS builder
 
-ARG project='roaring'
-ARG fuzzTargetPath='.'
-ARG fuzzTarget='serialization-fuzz'
-ARG fuzzFunction='FuzzSerializationBuffer'
+ENV GOTOOLCHAIN=auto
 
-ADD . ${project}
-WORKDIR ${project}
-RUN GO_ENABLED=0 go-fuzz-build -libfuzzer -func=${fuzzFunction} -o /${fuzzTarget}.a ./${fuzzTargetPath}
-RUN clang -fsanitize=fuzzer /${fuzzTarget}.a -o /${fuzzTarget}.libfuzzer
+WORKDIR /src
+COPY . .
 
-FROM ubuntu:20.04
+RUN go test -c \
+    -gcflags=all=-d=libfuzzer \
+    -o /serialization-fuzz.libfuzzer \
+    .
+
+FROM ubuntu:22.04
 COPY --from=builder /serialization-fuzz.libfuzzer /
